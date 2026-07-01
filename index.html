@@ -363,6 +363,13 @@
   /* URL do seu Apps Script (mesma da planilha). */
   const URL_PLANILHA = 'https://script.google.com/macros/s/AKfycbxiJTXZgkXMXRDm1cikCxU0eDVx50yhdogog4zXhEh1Av19YDFtKquIXlEIpRvY5nU5/exec';
 
+  // Captura o IP público do dispositivo que preenche (registro/auditoria).
+  let ipCadastro = '';
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(d => { ipCadastro = d.ip || ''; })
+    .catch(() => {});
+
   const form = document.getElementById('formContato');
   const sucesso = document.getElementById('sucesso');
   const aviso = document.getElementById('aviso');
@@ -822,6 +829,7 @@
       uf: form.uf.value, referencia: form.referencia.value.trim(),
       trabalho: form.trabalho.value.trim(), cargo: form.cargo.value.trim(),
       instagram: form.instagram.value.trim(),
+      ip: ipCadastro,
       dataCadastro: new Date().toISOString(),
     };
 
