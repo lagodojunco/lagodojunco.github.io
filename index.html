@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro</title>
+<style>
+  :root {
+    --bg-1: #eef2ff; --bg-2: #f8fafc;
+    --card-bg: rgba(255,255,255,0.78); --card-border: rgba(226,232,240,0.9);
+    --texto: #0f172a; --muted: #64748b; --borda: #e2e8f0;
+    --input-bg: #ffffff; --input-bg-focus: #ffffff;
+    --chip-bg: #f1f5f9; --chip-bg-hover: #e2e8f0;
+    --sombra: 0 20px 50px rgba(15,23,42,0.12);
+    --primaria-1: #6366f1; --primaria-2: #2563eb;
+    --erro: #dc2626; --sucesso: #16a34a; --aviso: #b45309;
+  }
+  [data-theme="dark"] {
+    --bg-1: #0b1020; --bg-2: #1e1b4b;
+    --card-bg: rgba(30,41,59,0.62); --card-border: rgba(71,85,105,0.55);
+    --texto: #e7ecf5; --muted: #94a3b8; --borda: #334155;
+    --input-bg: #0f172a; --input-bg-focus: #131d33;
+    --chip-bg: #1e293b; --chip-bg-hover: #283548;
+    --sombra: 0 24px 60px rgba(0,0,0,0.45);
+    --primaria-1: #818cf8; --primaria-2: #3b82f6;
+    --erro: #f87171; --sucesso: #4ade80; --aviso: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light dark; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+    color: var(--texto); min-height: 100vh; padding: 28px 16px 48px;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,0.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(37,99,235,0.16), transparent 55%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    transition: color 0.3s ease, background-color 0.3s ease;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+  .card {
+    background: var(--card-bg);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border); border-radius: 22px;
+    box-shadow: var(--sombra); padding: 30px 32px 34px;
+    animation: surgir 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .titulo { display: flex; align-items: center; gap: 12px; }
+  .titulo-icone {
+    width: 44px; height: 44px; display: grid; place-items: center;
+    border-radius: 13px; color: #fff;
+    background: linear-gradient(135deg, var(--primaria-1), var(--primaria-2));
+    box-shadow: 0 8px 20px rgba(37,99,235,0.35); flex: none;
+  }
+  .titulo-icone svg { width: 24px; height: 24px; }
+  h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; }
+  .subtitulo { color: var(--muted); font-size: 0.92rem; margin: 8px 0 18px; }
+  .tema-btn {
+    flex: none; width: 44px; height: 44px; border-radius: 12px;
+    border: 1px solid var(--borda); background: var(--chip-bg); color: var(--texto);
+    display: grid; place-items: center; cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .tema-btn:hover { background: var(--chip-bg-hover); transform: rotate(-12deg); }
+  .tema-btn svg { width: 20px; height: 20px; }
+  .tema-btn .lua { display: none; }
+  [data-theme="dark"] .tema-btn .sol { display: none; }
+  [data-theme="dark"] .tema-btn .lua { display: block; }
+
+  .campo { margin-bottom: 12px; }
+  label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 7px; }
+  label .obrigatorio { color: var(--erro); }
+  .input-wrap { position: relative; }
+  .input-wrap > svg.prefixo {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--muted); pointer-events: none; transition: color 0.2s;
+  }
+  input {
+    width: 100%; padding: 12px 14px 12px 42px;
+    border: 1.5px solid var(--borda); border-radius: 12px; font-size: 1rem;
+    background: var(--input-bg); color: var(--texto);
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  input::placeholder { color: var(--muted); opacity: 0.7; }
+  input:focus {
+    outline: none; border-color: var(--primaria-2); background: var(--input-bg-focus);
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.16);
+  }
+  .input-wrap:focus-within > svg.prefixo { color: var(--primaria-2); }
+  input.invalido { border-color: var(--erro); }
+  .campo-grande input { font-size: 1.06rem; padding-top: 14px; padding-bottom: 14px; }
+  .campo-grande { position: relative; margin-bottom: 12px; }
+  .campo-grande .contador-char { position: absolute; top: 1px; right: 2px; margin: 0; }
+  .contador-char { text-align: right; font-size: 0.72rem; color: var(--muted); margin-top: 2px; line-height: 1.1; transition: color 0.2s; }
+  .contador-char.quase { color: var(--aviso); font-weight: 600; }
+  .tel-status { font-size: 0.78rem; margin-top: 6px; min-height: 1.1em; font-weight: 600; transition: color 0.2s; }
+  .tel-status.incompleto { color: var(--aviso); }
+  .tel-status.completo { color: var(--sucesso); }
+  .cep-status { font-size: 0.78rem; margin-top: 4px; min-height: 0; font-weight: 600; transition: color 0.2s; }
+  .cep-status:empty { margin-top: 0; }
+  .cep-status.buscando { color: var(--muted); }
+  .cep-status.ok { color: var(--sucesso); }
+  .cep-status.erro { color: var(--erro); }
+  .cep-linha { display: flex; gap: 8px; align-items: stretch; }
+  .cep-linha .input-wrap { flex: 1; }
+  .btn-buscar-cep {
+    flex: none; white-space: nowrap; padding: 0 14px; border-radius: 12px;
+    border: 1.5px solid var(--borda); background: var(--chip-bg); color: var(--texto);
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-buscar-cep:hover { background: var(--chip-bg-hover); }
+  .btn-buscar-cep:disabled { opacity: 0.6; cursor: progress; }
+  @media (max-width: 540px) { .cep-linha { flex-wrap: wrap; } .btn-buscar-cep { width: 100%; padding: 10px; } }
+
+  .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .linha-endereco { display: grid; grid-template-columns: 1fr 130px; gap: 12px; }
+  .linha-end3 { display: grid; grid-template-columns: 1fr 86px 1fr; gap: 12px; }
+  .linha-uf-cidade { display: grid; grid-template-columns: 86px 1fr; gap: 12px; }
+  select {
+    width: 100%; padding: 12px 36px 12px 14px;
+    border: 1.5px solid var(--borda); border-radius: 12px; font-size: 1rem;
+    background-color: var(--input-bg); color: var(--texto); cursor: pointer;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat; background-position: right 11px center; background-size: 16px;
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  select:focus { outline: none; border-color: var(--primaria-2); box-shadow: 0 0 0 4px rgba(37,99,235,0.16); }
+  select:disabled { opacity: 0.65; cursor: not-allowed; }
+
+  .grupo-endereco {
+    border: 1px solid var(--borda); border-radius: 14px;
+    padding: 14px 14px 4px; margin-bottom: 12px; background: rgba(127,127,127,0.035);
+  }
+  .grupo-titulo {
+    display: flex; align-items: center; gap: 7px; font-size: 0.74rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 14px;
+  }
+  .grupo-titulo svg { width: 15px; height: 15px; }
+
+  @media (max-width: 540px) {
+    .linha, .linha-endereco, .linha-end3, .linha-uf-cidade { grid-template-columns: 1fr; gap: 0; }
+    .card { padding: 22px 20px 26px; }
+    h1 { font-size: 1.25rem; }
+  }
+
+  .btn-enviar {
+    width: 100%; margin-top: 18px; padding: 14px; border: none; border-radius: 12px;
+    font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, var(--primaria-1), var(--primaria-2));
+    box-shadow: 0 10px 24px rgba(37,99,235,0.32);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.12s, box-shadow 0.2s, opacity 0.2s;
+  }
+  .btn-enviar svg { width: 18px; height: 18px; }
+  .btn-enviar:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(37,99,235,0.42); }
+  .btn-enviar:active { transform: translateY(0); }
+  .btn-enviar:disabled { opacity: 0.65; cursor: progress; transform: none; }
+
+  .aviso {
+    margin-top: 16px; padding: 12px 14px; border-radius: 12px; font-size: 0.88rem;
+    display: none; align-items: center; gap: 8px; animation: surgir 0.3s ease both;
+  }
+  .aviso.warn { display: flex; background: rgba(245,158,11,0.16); color: var(--aviso); }
+  .aviso.err  { display: flex; background: rgba(239,68,68,0.14); color: var(--erro); }
+
+  /* Tela de obrigado */
+  .sucesso { text-align: center; padding: 24px 8px; animation: surgir 0.4s ease both; }
+  .sucesso .check {
+    width: 84px; height: 84px; margin: 0 auto 18px; border-radius: 50%;
+    display: grid; place-items: center; color: #fff;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 10px 30px rgba(22,163,74,0.4);
+    animation: pop 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .sucesso .check svg { width: 44px; height: 44px; }
+  .sucesso h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .sucesso p { color: var(--muted); font-size: 1rem; margin-bottom: 24px; }
+  .btn-novo {
+    padding: 12px 22px; border: 1.5px solid var(--primaria-2); border-radius: 12px;
+    background: none; color: var(--primaria-2); font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-novo:hover { background: rgba(37,99,235,0.1); }
+
+  @keyframes surgir { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { *, .card, .aviso, .sucesso, .check { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="titulo">
+          <div class="titulo-icone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h1>Cadastro</h1>
+        </div>
+        <button type="button" class="tema-btn" id="temaBtn" title="Alternar tema" aria-label="Alternar tema">
+          <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+
+      <p class="subtitulo">Preencha seus dados abaixo. Campos com <span style="color:var(--erro)">*</span> são obrigatórios.</p>
+
+      <form id="formContato" novalidate>
+        <div class="campo campo-grande">
+          <label for="nome">Nome <span class="obrigatorio">*</span></label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="nome" name="nome" placeholder="João da Silva" required maxlength="80">
+          </div>
+          <div class="contador-char"><span data-contador="nome">0</span>/80</div>
+        </div>
+
+        <div class="campo campo-grande">
+          <label for="apelido">Apelido</label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <input type="text" id="apelido" name="apelido" placeholder="Joãozinho" maxlength="60">
+          </div>
+          <div class="contador-char"><span data-contador="apelido">0</span>/60</div>
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone <span class="obrigatorio">*</span></label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required maxlength="15" inputmode="numeric">
+          </div>
+          <div class="tel-status" id="telStatus" aria-live="polite"></div>
+        </div>
+
+        <div class="grupo-endereco">
+          <div class="grupo-titulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Endereço
+          </div>
+          <div class="campo">
+            <label for="cep">CEP <span style="color:var(--muted);font-weight:400">(digite o CEP p/ preencher tudo, ou busque pelo endereço)</span></label>
+            <div class="cep-linha">
+              <div class="input-wrap">
+                <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+                <input type="text" id="cep" name="cep" placeholder="00000-000" maxlength="9" inputmode="numeric" autocomplete="off" list="listaCep">
+              </div>
+              <button type="button" class="btn-buscar-cep" id="btnBuscarCep">🔍 Buscar pelo endereço</button>
+            </div>
+            <datalist id="listaCep"></datalist>
+            <div class="cep-status" id="cepStatus" aria-live="polite"></div>
+          </div>
+          <div class="linha-uf-cidade">
+            <div class="campo">
+              <label for="uf">UF</label>
+              <select id="uf" name="uf">
+                <option value="">--</option>
+                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                <option value="MA" selected>MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="cidade">Cidade</label>
+              <div class="input-wrap">
+                <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="6" y="8" width="5" height="13"/><rect x="13" y="3" width="5" height="18"/></svg>
+                <input type="text" id="cidade" name="cidade" list="listaCidades" placeholder="Selecione a UF primeiro" maxlength="60" autocomplete="off" disabled>
+              </div>
+              <datalist id="listaCidades"></datalist>
+            </div>
+          </div>
+
+          <div class="linha-endereco">
+            <div class="campo">
+              <label for="rua">Rua / Avenida / Povoado</label>
+              <div class="input-wrap">
+                <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <input type="text" id="rua" name="rua" placeholder="Comece a digitar ou escolha o povoado" maxlength="120" list="listaRua" autocomplete="off">
+              </div>
+              <datalist id="listaRua"></datalist>
+            </div>
+            <div class="campo">
+              <label for="numero">Número</label>
+              <div class="input-wrap">
+                <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+                <input type="text" id="numero" name="numero" placeholder="1000" maxlength="15">
+              </div>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="bairro">Bairro</label>
+            <div class="input-wrap">
+              <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              <input type="text" id="bairro" name="bairro" placeholder="Comece a digitar ou escolha" maxlength="60" list="listaBairro" autocomplete="off">
+            </div>
+            <datalist id="listaBairro"></datalist>
+          </div>
+          <div class="campo" style="margin-bottom:4px">
+            <label for="referencia">Ponto de referência</label>
+            <div class="input-wrap">
+              <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              <input type="text" id="referencia" name="referencia" placeholder="Próximo à praça / em frente ao mercado" maxlength="120">
+            </div>
+          </div>
+        </div>
+
+        <div class="campo campo-grande">
+          <label for="trabalho">Local de Trabalho <span class="obrigatorio">*</span></label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+            <input type="text" id="trabalho" name="trabalho" placeholder="Comece a digitar ou escolha da lista" maxlength="120" list="listaTrabalho" autocomplete="off" required>
+          </div>
+          <datalist id="listaTrabalho"></datalist>
+          <div class="contador-char"><span data-contador="trabalho">0</span>/120</div>
+        </div>
+
+        <div class="campo campo-grande">
+          <label for="cargo">Cargo / Função <span class="obrigatorio">*</span></label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <input type="text" id="cargo" name="cargo" placeholder="Comece a digitar ou escolha da lista" maxlength="80" list="listaCargo" autocomplete="off" required>
+          </div>
+          <datalist id="listaCargo"></datalist>
+          <div class="contador-char"><span data-contador="cargo">0</span>/80</div>
+        </div>
+
+        <div class="campo">
+          <label for="instagram">Instagram</label>
+          <div class="input-wrap">
+            <svg class="prefixo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            <input type="text" id="instagram" name="instagram" placeholder="@usuario" maxlength="60">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-enviar" id="btnEnviar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span id="btnEnviarTxt">Enviar cadastro</span>
+        </button>
+
+        <div class="aviso" id="aviso"></div>
+      </form>
+
+      <div class="sucesso" id="sucesso" style="display:none">
+        <div class="check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h2>Cadastro enviado!</h2>
+        <p>Obrigado! Suas informações foram registradas com sucesso.</p>
+        <button type="button" class="btn-novo" id="btnNovo">Cadastrar outra pessoa</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* URL do seu Apps Script (mesma da planilha). */
+  const URL_PLANILHA = 'https://script.google.com/macros/s/AKfycbxiJTXZgkXMXRDm1cikCxU0eDVx50yhdogog4zXhEh1Av19YDFtKquIXlEIpRvY5nU5/exec';
+
+  const form = document.getElementById('formContato');
+  const sucesso = document.getElementById('sucesso');
+  const aviso = document.getElementById('aviso');
+  const btnEnviar = document.getElementById('btnEnviar');
+  const btnEnviarTxt = document.getElementById('btnEnviarTxt');
+
+  /* Tema */
+  const htmlEl = document.documentElement;
+  const temaSalvo = localStorage.getItem('tema');
+  const prefereDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  htmlEl.setAttribute('data-theme', temaSalvo || (prefereDark ? 'dark' : 'light'));
+  document.getElementById('temaBtn').addEventListener('click', () => {
+    const novo = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    htmlEl.setAttribute('data-theme', novo);
+    localStorage.setItem('tema', novo);
+  });
+
+  function gerarId() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+
+  /* Cidade com autocomplete (IBGE) */
+  const ufSelect = document.getElementById('uf');
+  const cidadeInput = document.getElementById('cidade');
+  const listaCidades = document.getElementById('listaCidades');
+  const cacheCidades = {};
+  const escapeHtml = (s) => String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  function resetCidade(msg) { cidadeInput.value = ''; cidadeInput.disabled = true; cidadeInput.placeholder = msg; listaCidades.innerHTML = ''; }
+  function preencherCidades(nomes) {
+    cidadeInput.disabled = false; cidadeInput.placeholder = 'Digite ou escolha a cidade';
+    listaCidades.innerHTML = nomes.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+  }
+  async function carregarCidades(uf) {
+    if (!uf) { resetCidade('Selecione a UF primeiro'); return; }
+    cidadeInput.value = '';
+    if (cacheCidades[uf]) { preencherCidades(cacheCidades[uf]); return; }
+    cidadeInput.disabled = true; cidadeInput.placeholder = 'Carregando cidades...';
+    try {
+      const r = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const dados = await r.json();
+      const nomes = dados.map(m => m.nome).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      cacheCidades[uf] = nomes; preencherCidades(nomes);
+    } catch (e) {
+      cidadeInput.disabled = false; cidadeInput.placeholder = 'Digite a cidade (lista indisponível)'; listaCidades.innerHTML = '';
+    }
+  }
+  ufSelect.addEventListener('change', () => carregarCidades(ufSelect.value));
+
+  /* Máscara + status do telefone */
+  const telefoneInput = document.getElementById('telefone');
+  const telStatus = document.getElementById('telStatus');
+  function mascaraTelefone(v) {
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    if (d.length === 0) return '';
+    if (d.length <= 2) return '(' + d;
+    if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  }
+  function telefoneCompleto() { const n = telefoneInput.value.replace(/\D/g, '').length; return n === 10 || n === 11; }
+  function statusTelefone() {
+    const d = telefoneInput.value.replace(/\D/g, '');
+    if (d.length === 0) { telStatus.textContent = ''; telStatus.className = 'tel-status'; telefoneInput.classList.remove('invalido'); }
+    else if (telefoneCompleto()) { telStatus.textContent = '✓ Número completo'; telStatus.className = 'tel-status completo'; telefoneInput.classList.remove('invalido'); }
+    else {
+      const faltam = Math.max(10 - d.length, 0);
+      telStatus.textContent = faltam > 0 ? `Faltam ${faltam} dígito(s) — DDD + número (10 fixo, 11 celular).` : 'Número incompleto — DDD + número (10 fixo, 11 celular).';
+      telStatus.className = 'tel-status incompleto'; telefoneInput.classList.add('invalido');
+    }
+  }
+  telefoneInput.addEventListener('input', () => { telefoneInput.value = mascaraTelefone(telefoneInput.value); statusTelefone(); });
+
+  /* CEP: busca endereço (ViaCEP) e preenche Cidade/UF */
+  const cepInput = document.getElementById('cep');
+  const cepStatus = document.getElementById('cepStatus');
+  function mascaraCep(v) {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    return d.length <= 5 ? d : d.slice(0, 5) + '-' + d.slice(5);
+  }
+  async function buscarCep() {
+    const d = cepInput.value.replace(/\D/g, '');
+    if (d.length !== 8) return;
+    cepStatus.textContent = 'Buscando endereço...';
+    cepStatus.className = 'cep-status buscando';
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${d}/json/`);
+      const dados = await r.json();
+      if (dados.erro) { cepStatus.textContent = 'CEP não encontrado.'; cepStatus.className = 'cep-status erro'; return; }
+      if (dados.logradouro) form.rua.value = dados.logradouro.toUpperCase();
+      if (dados.bairro) form.bairro.value = dados.bairro.toUpperCase();
+      ufSelect.value = dados.uf || '';
+      await carregarCidades(dados.uf);
+      cidadeInput.value = (dados.localidade || '').toUpperCase();
+      atualizarContadores();
+      cepStatus.textContent = '✓ Endereço preenchido pelo CEP';
+      cepStatus.className = 'cep-status ok';
+    } catch (e) {
+      cepStatus.textContent = 'Não foi possível buscar o CEP (verifique a internet).';
+      cepStatus.className = 'cep-status erro';
+    }
+  }
+  cepInput.addEventListener('input', () => {
+    cepInput.value = mascaraCep(cepInput.value);
+    const d = cepInput.value.replace(/\D/g, '');
+    if (d.length < 8) { cepStatus.textContent = ''; cepStatus.className = 'cep-status'; }
+    if (d.length === 8) buscarCep();
+  });
+
+  // Caminho inverso: acha o CEP a partir de UF + Cidade + Rua (ViaCEP).
+  const btnBuscarCep = document.getElementById('btnBuscarCep');
+  const listaCep = document.getElementById('listaCep');
+  async function buscarCepPorEndereco() {
+    const uf = ufSelect.value;
+    const cidade = cidadeInput.value.trim();
+    const rua = form.rua.value.trim();
+    const letras = rua.replace(/[^A-Za-zÀ-ÿ]/g, '');
+    if (!uf || !cidade) {
+      cepStatus.textContent = 'Escolha a UF e a Cidade primeiro.'; cepStatus.className = 'cep-status erro'; return;
+    }
+    if (letras.length < 3) {
+      cepStatus.textContent = 'Digite ao menos a Rua/Avenida (3+ letras) para localizar o CEP.'; cepStatus.className = 'cep-status erro'; return;
+    }
+    cepStatus.textContent = 'Procurando CEP...'; cepStatus.className = 'cep-status buscando';
+    btnBuscarCep.disabled = true;
+    try {
+      const u = `https://viacep.com.br/ws/${uf}/${encodeURIComponent(cidade)}/${encodeURIComponent(rua)}/json/`;
+      const r = await fetch(u);
+      const dados = await r.json();
+      if (!Array.isArray(dados) || dados.length === 0) {
+        cepStatus.textContent = 'Nenhum CEP encontrado para esse endereço.'; cepStatus.className = 'cep-status erro';
+        listaCep.innerHTML = ''; return;
+      }
+      listaCep.innerHTML = dados.map(d => `<option value="${escapeHtml(mascaraCep(d.cep))}">${escapeHtml(d.logradouro || d.bairro || '')}</option>`).join('');
+      cepInput.value = mascaraCep(dados[0].cep);
+      if (dados.length === 1) {
+        cepStatus.textContent = '✓ CEP encontrado'; cepStatus.className = 'cep-status ok';
+      } else {
+        cepStatus.textContent = `${dados.length} CEPs nessa via — preenchi o 1º; confira pelo número ou escolha na setinha do campo.`;
+        cepStatus.className = 'cep-status ok';
+      }
+    } catch (e) {
+      cepStatus.textContent = 'Não foi possível buscar (verifique a internet).'; cepStatus.className = 'cep-status erro';
+    } finally {
+      btnBuscarCep.disabled = false;
+    }
+  }
+  btnBuscarCep.addEventListener('click', buscarCepPorEndereco);
+
+  // Carrega as cidades da UF padrão (MA); Cidade e CEP ficam em branco.
+  function aplicarPadroesEndereco() {
+    carregarCidades(ufSelect.value);
+  }
+
+  /* Texto em MAIÚSCULAS ao digitar (exceto Instagram, telefone e CEP) */
+  const semMaiusculas = new Set(['instagram', 'telefone', 'cep']);
+  form.addEventListener('input', (e) => {
+    const el = e.target;
+    if (el.tagName !== 'INPUT' || el.type !== 'text' || semMaiusculas.has(el.id)) return;
+    const up = el.value.toUpperCase();
+    if (up !== el.value) {
+      const ini = el.selectionStart, fim = el.selectionEnd;
+      el.value = up;
+      try { el.setSelectionRange(ini, fim); } catch (_) {}
+    }
+  });
+
+  /* Sugestões de Local de Trabalho */
+  const LOCAIS_TRABALHO = [
+    'Centro De Educação Infantil Raimunda Arruda',
+    'Colégio Zeca Léda_Magistério',
+    'Colégio Zeca Léda',
+    'Creche Vovó Cacilda Léda',
+    'Unidade Escolar Dr. Osmar Rodrigues De Carvalho_EJA',
+    'Unidade Escolar Dr. Osmar Rodrigues De Carvalho',
+    'Unidade Mais Integrada Hosano Gomes Ferreira I _At. Complementares',
+    'Unidade Mais Integrada Hosano Gomes Ferreira I',
+    'Farol do Saber Aldemar Alves Albuquerque',
+    'Unidade Escolar João David De Castro',
+    'Unidade Escolar Eduardo Rocha',
+    'Unidade Escolar José Luis Oliveira',
+    'Unidade Escolar Desembargador José Sarney',
+    'Creche Maria Das Graças Ribeiro De Arruda',
+    'Unidade Integrada Mestre Francisco Rodrigues Carneiro',
+    'Unidade Escolar Carmina Alves Caiana',
+    'Unidade Escolar Antonio Gomes De Lima',
+    'Unidade Integrada Sinfrônio Francisco Alves',
+    'Unidade Escolar Maria Alves De Sousa',
+    'Unidade Escolar Antonio Pereira Neves',
+    'Creche Tia Zezé II',
+    'Unidade Escolar Augusto Assis Rodrigues',
+    'Unidade Escolar Maria Lilamar Albuquerque',
+    'Escola Municipal Santa Luzia',
+    'Unidade Escolar Justino Rodrigues De Oliveira',
+    'Escola Municipal 21 De Abril',
+    'Escola Municipal São José',
+    'Unidade Integrada José Nogueira',
+    'Unidade Escolar Raimundo José Luis De Oliveira',
+    'C.E. José Malaquias – Anexo Efa Antonio Fontinele',
+    'C.E. José Malaquias – Anexo Efr Por Alternancia M. Monteiro',
+    'C. E. José Malaquias',
+    'C. E. José Malaquias – Anexo',
+    'Centro de Saúde Aldenora da Costa Vilarins',
+    'Hospital Municipal Alcy Alves Arruda',
+    'Unidade Básica de Saúde Raimundo Albuquerque',
+    'Unidade Básica de Saúde Julia Arruda',
+    'Unidade Básica de Saúde Roseno Lima dos Reis',
+    'Unidade Básica de Saúde João Gualberto',
+    'Unidade Básica de Saúde São Manoel',
+    'Gabinete do Prefeito',
+    'Secretaria Municipal de Administração e Planejamento',
+    'Secretaria Municipal de Finanças',
+    'Secretaria Municipal de Obras e Infra Estrutura',
+    'Secretaria Municipal de Educação',
+    'Secretaria Municipal de Saúde e Saneamento Básico',
+    'Secretaria Municipal de Meio Ambiente',
+    'Secretaria Municipal de Agricultura',
+    'Secretaria Municipal de Assistência Social do Trabalho e Desenvolvimento Comunitário',
+    'Secretaria Municipal de Esporte, Lazer e Juventude',
+    'Secretaria Municipal de Cultura',
+    'Secretário Municipal da Mulher',
+    'Secretário Municipal de Articulação Política',
+    'Secretaria Municipal de Turismo',
+    'Secretaria Municipal de Segurança Pública',
+  ];
+  const dlTrabalho = document.getElementById('listaTrabalho');
+  if (dlTrabalho) dlTrabalho.innerHTML = LOCAIS_TRABALHO.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+
+  /* Sugestões de Cargo / Função */
+  const CARGOS = [
+    'AGENTE COMUNITÁRIO DE SAÚDE',
+    'ASSESSOR DE GABINETE',
+    'ASSESSOR JURIDICO',
+    'ASSESSOR(A) ESPECIAL DO PREFEITO',
+    'ASSESSOR(A) TÉCNICA(O)',
+    'ASSISTENTE SOCIAL',
+    'AUXILIAR ADMINISTRATIVO',
+    'AUXILIAR DE DENTISTA',
+    'AUXILIAR DE FARMACIA',
+    'AUXILIAR DE LABORATÓRIO',
+    'AUXILIAR DE SERVIÇOS GERAIS - LIMPEZA',
+    'AUXILIAR DE SERVIÇOS GERAIS - MERENDA',
+    'BIOMEDICA',
+    'CHEFA(E) DE DEPARTAMENTO ESCOLAR',
+    'CHEFE DE ALMOXARIFADO',
+    'CONSELHEIRO SUPLENTE',
+    'CONSELHEIRO TUTELAR',
+    'CONTADOR(A)',
+    'COORDENADOR CRAS',
+    'COORDENADOR(A)',
+    'COORDENADOR(A) PEDAGOGICO(A)',
+    'DENTISTA',
+    'DIGITADOR',
+    'DIRETOR DE DEPARTAMENTO TRANSPORTE ESCOLAR',
+    'DIRETOR(A) DE DEPARTAMENTO',
+    'DIRETOR(A) DE DEPARTAMENTO ESCOLAR',
+    'EDUCADOR FISICO',
+    'ELETRICISTA',
+    'ENFERMEIRA(O)',
+    'ENGENHEIRO CIVIL',
+    'FARMACÊUTICA(O)',
+    'FISIOTERAPEUTA',
+    'FONOAUDIOLOGA(O)',
+    'MECANICO',
+    'MEDICO (A)',
+    'MOTORISTA',
+    'NEUROPSICOPEDAGOGA',
+    'NUTRICIONISTA',
+    'OPERADOR',
+    'OPERADOR DE MAQUINA',
+    'PREFEITO(A) MUNICIPAL',
+    'PROCURADOR(A) GERAL',
+    'PROFESSOR(A) AUXILIAR',
+    'PROFESSOR(A) C.CO.',
+    'PROFESSOR(A) MAGISTÉRIO',
+    'PROFESSOR(A) EJA',
+    'PSICOLOGA(O)',
+    'RECEPCIONISTA',
+    'SECRETÁRIA(O) MUNICIPAL TRAB. E DESENVOLVIMENTO',
+    'SECRETÁRIA(O) MUNICIPAL DE AGRICULTURA',
+    'SECRETÁRIA(O) MUNICIPAL DE ARTICULAÇÃO POLÍTICA',
+    'SECRETÁRIA(O) MUNICIPAL DE CULTURA',
+    'SECRETÁRIA(O) MUNICIPAL DE EDUCAÇÃO',
+    'SECRETÁRIA(O) MUNICIPAL DE FINANÇAS',
+    'SECRETÁRIA(O) MUNICIPAL DE OBRAS E INFRAESTRUTURA',
+    'SECRETÁRIA(O) MUNICIPAL DE SAÚDE E SANEAMENTO BÁSICO',
+    'SECRETÁRIO MUNICIPAL DE ADMINISTRAÇÃO E PLANEJAMENTO',
+    'TECNICA (O) EM RADIOLOGIA',
+    'TECNICA(O) EM AGENTE COMUNITARIO DE SAUDE',
+    'TECNICA(O) EM AGENTE DE COMBATE AS ENDEMIAS - ACE',
+    'TECNICA(O) EM ENFERMAGEM',
+    'TECNICO EM AGROPECUARIA',
+    'VICE-PREFEITO(A)',
+    'VIGIA - POÇO ARTESIANO',
+    'VIGIA',
+    'VISITADOR(A) CRIANÇA FELIZ',
+  ];
+  const dlCargo = document.getElementById('listaCargo');
+  if (dlCargo) dlCargo.innerHTML = CARGOS.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+
+  /* Sugestões de Bairro / Localidade */
+  const BAIRROS = [
+    'ABELHA - ZONA RURAL',
+    'ALTO DA PAZ - ZONA RURAL',
+    'ANDREX - ZONA RURAL',
+    'BATATAL - ZONA RURAL',
+    'BERTULINO - ZONA RURAL',
+    'CABACEIRAS - ZONA RURAL',
+    'CAJAZEIRAS - ZONA RURAL',
+    'CENTRO',
+    'CENTRO DA APARECIDA - ZONA RURAL',
+    'CENTRO DA MARLY - ZONA RURAL',
+    'CENTRO DO ACRÍSIO (CENTRIN) - ZONA RURAL',
+    'CENTRO DO AGUIAR - ZONA RURAL',
+    'CENTRO DO ROSA - ZONA RURAL',
+    'CENTRO DOS LEÔNCIOS - ZONA RURAL',
+    'CENTRO DOS PASTORES - ZONA RURAL',
+    'CENTRO NOVO - ZONA RURAL',
+    'CIPÓ - ZONA RURAL',
+    'ESTIRÃO - ZONA RURAL',
+    'FORTALEZA - ZONA RURAL',
+    'LAGO QUEIMADO - ZONA RURAL',
+    'LAGOA VERMELHA - ZONA RURAL',
+    'LATA DOS ARRUDA - ZONA RURAL',
+    'LAVANDEIRA - ZONA RURAL',
+    'LUDOVICO - ZONA RURAL',
+    'MACAÚBA - ZONA RURAL',
+    'MATA URUBU REIS - ZONA RURAL',
+    'NENEM BARBOSA - ZONA RURAL',
+    'OLHO D\'ÁGUA DO ZÉ CODÓ - ZONA RURAL',
+    'PANELA FURADA - ZONA RURAL',
+    'PAU FERRADO - ZONA RURAL',
+    'PAU FERRADO DOS PROCÓPIOS - ZONA RURAL',
+    'PAU SANTO - ZONA RURAL',
+    'PLANALTO - ZONA RURAL',
+    'POTE - ZONA RURAL',
+    'PRIMAVERA - ZONA RURAL',
+    'RIACHÃO - ZONA RURAL',
+    'SANTA LUZIA - ZONA RURAL',
+    'SANTA RITA - ZONA RURAL',
+    'SANTA ZITA - ZONA RURAL',
+    'SÃO JOSÉ - ZONA RURAL',
+    'SÃO JOSÉ DA CONQUISTA - ZONA RURAL',
+    'SÃO MANOEL - ZONA RURAL',
+    'SÃO PAULO - ZONA RURAL',
+    'SÃO SEBASTIÃO - ZONA RURAL',
+    'SÍTIO NOVO - ZONA RURAL',
+    'VILA NOVO PARAÍSO - ZONA RURAL',
+    'VILA SÃO DOMINGOS - ZONA RURAL',
+    'VILA SÃO FRANCISCO - ZONA RURAL',
+    'VILA SÃO JOÃO - ZONA RURAL',
+    'ZÉ RITA - ZONA RURAL',
+  ];
+  const dlBairro = document.getElementById('listaBairro');
+  if (dlBairro) dlBairro.innerHTML = BAIRROS.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+
+  /* Sugestões de Rua / Avenida / Povoado */
+  const POVOADOS = [
+    'ABELHA',
+    'ALTO DA PAZ',
+    'ANDREX',
+    'BATATAL',
+    'BERTULINO',
+    'CABACEIRAS',
+    'CAJAZEIRAS',
+    'CENTRO DA APARECIDA',
+    'CENTRO DA MARLY',
+    'CENTRO DO ACRÍSIO (CENTRIN)',
+    'CENTRO DO AGUIAR',
+    'CENTRO DO ROSA',
+    'CENTRO DOS LEÔNCIOS',
+    'CENTRO DOS PASTORES',
+    'CENTRO NOVO',
+    'CIPÓ',
+    'ESTIRÃO',
+    'FORTALEZA',
+    'LAGO QUEIMADO',
+    'LAGOA VERMELHA',
+    'LATA DOS ARRUDA',
+    'LAVANDEIRA',
+    'LUDOVICO',
+    'MACAÚBA',
+    'MATA URUBU REIS',
+    'NENEM BARBOSA',
+    'OLHO D\'ÁGUA DO ZÉ CODÓ',
+    'PANELA FURADA',
+    'PAU FERRADO',
+    'PAU FERRADO DOS PROCÓPIOS',
+    'PAU SANTO',
+    'PLANALTO',
+    'POTE',
+    'PRIMAVERA',
+    'RIACHÃO',
+    'SANTA LUZIA',
+    'SANTA RITA',
+    'SANTA ZITA',
+    'SÃO JOSÉ',
+    'SÃO JOSÉ DA CONQUISTA',
+    'SÃO MANOEL',
+    'SÃO PAULO',
+    'SÃO SEBASTIÃO',
+    'SÍTIO NOVO',
+    'VILA NOVO PARAÍSO',
+    'VILA SÃO DOMINGOS',
+    'VILA SÃO FRANCISCO',
+    'VILA SÃO JOÃO',
+    'ZÉ RITA',
+  ];
+  const dlRua = document.getElementById('listaRua');
+  if (dlRua) dlRua.innerHTML = POVOADOS.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+
+  /* Contadores de caracteres */
+  function atualizarContadores() {
+    document.querySelectorAll('.contador-char').forEach(box => {
+      const span = box.querySelector('[data-contador]');
+      const input = span && document.getElementById(span.dataset.contador);
+      if (!input) return;
+      const max = input.maxLength;
+      span.textContent = input.value.length;
+      box.classList.toggle('quase', max > 0 && input.value.length >= max * 0.9);
+    });
+  }
+  document.querySelectorAll('.contador-char [data-contador]').forEach(span => {
+    const input = document.getElementById(span.dataset.contador);
+    if (input) input.addEventListener('input', atualizarContadores);
+  });
+
+  function mostrarAviso(tipo, texto, tempo) {
+    aviso.className = 'aviso ' + tipo; aviso.textContent = texto;
+    if (tempo) setTimeout(() => { aviso.className = 'aviso'; }, tempo);
+  }
+
+  async function enviarParaPlanilha(contato) {
+    try {
+      await fetch(URL_PLANILHA, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(contato),
+      });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!telefoneCompleto()) {
+      mostrarAviso('err', 'Telefone incompleto. Informe o número completo: DDD + número.', 5000);
+      statusTelefone(); telefoneInput.focus(); return;
+    }
+
+    const contato = {
+      id: gerarId(),
+      nome: form.nome.value.trim(), apelido: form.apelido.value.trim(),
+      telefone: form.telefone.value.trim(), cep: form.cep.value.trim(),
+      rua: form.rua.value.trim(), numero: form.numero.value.trim(),
+      bairro: form.bairro.value.trim(), cidade: cidadeInput.value.trim(),
+      uf: form.uf.value, referencia: form.referencia.value.trim(),
+      trabalho: form.trabalho.value.trim(), cargo: form.cargo.value.trim(),
+      instagram: form.instagram.value.trim(),
+      dataCadastro: new Date().toISOString(),
+    };
+
+    btnEnviar.disabled = true;
+    btnEnviarTxt.textContent = 'Enviando...';
+    mostrarAviso('warn', 'Enviando seus dados...');
+    const ok = await enviarParaPlanilha(contato);
+    btnEnviar.disabled = false;
+    btnEnviarTxt.textContent = 'Enviar cadastro';
+
+    if (ok) {
+      aviso.className = 'aviso';
+      form.style.display = 'none';
+      sucesso.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      mostrarAviso('err', 'Não foi possível enviar. Verifique sua internet e tente novamente.', 6000);
+    }
+  });
+
+  document.getElementById('btnNovo').addEventListener('click', () => {
+    form.reset();
+    atualizarContadores();
+    statusTelefone();
+    aplicarPadroesEndereco();
+    cepStatus.textContent = ''; cepStatus.className = 'cep-status';
+    sucesso.style.display = 'none';
+    form.style.display = 'block';
+    form.nome.focus();
+  });
+
+  atualizarContadores();
+  aplicarPadroesEndereco();   // pré-preenche Cidade (Lago do Junco) e CEP ao abrir
+</script>
+</body>
+</html>
