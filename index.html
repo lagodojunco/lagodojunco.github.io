@@ -102,6 +102,27 @@
   .cep-status.buscando { color: var(--muted); }
   .cep-status.ok { color: var(--sucesso); }
   .cep-status.erro { color: var(--erro); }
+
+  /* Campo de foto */
+  .foto-area { display: flex; align-items: center; gap: 14px; }
+  .foto-preview {
+    width: 76px; height: 76px; border-radius: 50%; flex: none; overflow: hidden;
+    border: 2px dashed var(--borda); background: var(--input-bg);
+    background-size: cover; background-position: center;
+    display: grid; place-items: center; color: var(--muted);
+  }
+  .foto-preview.tem-foto { border-style: solid; border-color: var(--primaria-2); }
+  .foto-preview svg { width: 30px; height: 30px; }
+  .foto-preview.tem-foto svg { display: none; }
+  .foto-acoes { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+  .btn-foto {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    padding: 9px 16px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; color: #fff;
+    background: linear-gradient(135deg, var(--primaria-1), var(--primaria-2));
+  }
+  .btn-foto svg { width: 16px; height: 16px; }
+  .btn-foto-sec { background: none; border: none; cursor: pointer; color: var(--erro); font-size: 0.82rem; font-weight: 600; padding: 2px 0; }
+  .foto-status { font-size: 0.76rem; color: var(--muted); min-height: 1em; }
   .cep-linha { display: flex; gap: 8px; align-items: stretch; }
   .cep-linha .input-wrap { flex: 1; }
   .btn-buscar-cep {
@@ -208,6 +229,24 @@
       <p class="subtitulo">Preencha seus dados abaixo. Campos com <span style="color:var(--erro)">*</span> são obrigatórios.</p>
 
       <form id="formContato" novalidate>
+        <div class="campo">
+          <label for="foto">Foto</label>
+          <div class="foto-area">
+            <div class="foto-preview" id="fotoPreview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <div class="foto-acoes">
+              <label for="foto" class="btn-foto">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Escolher / tirar foto
+              </label>
+              <button type="button" id="fotoRemover" class="btn-foto-sec" style="display:none">Remover foto</button>
+              <div class="foto-status" id="fotoStatus"></div>
+            </div>
+          </div>
+          <input type="file" id="foto" accept="image/*" hidden>
+        </div>
+
         <div class="campo campo-grande">
           <label for="nome">Nome <span class="obrigatorio">*</span></label>
           <div class="input-wrap">
@@ -822,6 +861,7 @@
 
     const contato = {
       id: gerarId(),
+      foto: fotoFull, fotoMini: fotoMini,
       nome: form.nome.value.trim(), apelido: form.apelido.value.trim(),
       telefone: form.telefone.value.trim(), cep: form.cep.value.trim(),
       rua: form.rua.value.trim(), numero: form.numero.value.trim(),
@@ -852,6 +892,7 @@
 
   document.getElementById('btnNovo').addEventListener('click', () => {
     form.reset();
+    limparFoto();
     atualizarContadores();
     statusTelefone();
     aplicarPadroesEndereco();
@@ -860,6 +901,60 @@
     form.style.display = 'block';
     form.nome.focus();
   });
+
+  /* ---------- Campo de foto (comprime no navegador; Drive + miniatura) ---------- */
+  let fotoFull = '';
+  let fotoMini = '';
+  const fotoInput = document.getElementById('foto');
+  const fotoPreview = document.getElementById('fotoPreview');
+  const fotoRemover = document.getElementById('fotoRemover');
+  const fotoStatus = document.getElementById('fotoStatus');
+
+  function comprimirImagem(file, maxLado, qualidade) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > h && w > maxLado) { h = Math.round(h * maxLado / w); w = maxLado; }
+          else if (h > maxLado) { w = Math.round(w * maxLado / h); h = maxLado; }
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL('image/jpeg', qualidade));
+        };
+        img.onerror = reject;
+        img.src = ev.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function limparFoto() {
+    fotoFull = ''; fotoMini = '';
+    fotoInput.value = '';
+    fotoPreview.style.backgroundImage = '';
+    fotoPreview.classList.remove('tem-foto');
+    fotoRemover.style.display = 'none';
+    fotoStatus.textContent = '';
+  }
+  fotoInput.addEventListener('change', async () => {
+    const file = fotoInput.files && fotoInput.files[0];
+    if (!file) return;
+    fotoStatus.textContent = 'Processando foto...';
+    try {
+      fotoFull = await comprimirImagem(file, 800, 0.75);
+      fotoMini = await comprimirImagem(file, 140, 0.6);
+      fotoPreview.style.backgroundImage = `url("${fotoMini}")`;
+      fotoPreview.classList.add('tem-foto');
+      fotoRemover.style.display = 'inline-block';
+      fotoStatus.textContent = '';
+    } catch (e) {
+      fotoStatus.textContent = 'Não foi possível ler a imagem.';
+    }
+  });
+  fotoRemover.addEventListener('click', limparFoto);
 
   atualizarContadores();
   aplicarPadroesEndereco();   // pré-preenche Cidade (Lago do Junco) e CEP ao abrir
