@@ -238,13 +238,13 @@
             <div class="foto-acoes">
               <label for="foto" class="btn-foto">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Escolher / tirar foto
+                Tirar foto
               </label>
               <button type="button" id="fotoRemover" class="btn-foto-sec" style="display:none">Remover foto</button>
               <div class="foto-status" id="fotoStatus"></div>
             </div>
           </div>
-          <input type="file" id="foto" accept="image/*" hidden>
+          <input type="file" id="foto" accept="image/*" capture="environment" hidden>
         </div>
 
         <div class="campo campo-grande">
@@ -861,7 +861,7 @@
 
     // Foto é obrigatória.
     if (!fotoFull) {
-      mostrarAviso('err', 'Adicione uma foto antes de enviar (toque em "Escolher / tirar foto").', 5000);
+      mostrarAviso('err', 'Adicione uma foto antes de enviar (toque em "Tirar foto").', 5000);
       fotoStatus.textContent = 'Foto obrigatória.';
       document.getElementById('fotoPreview').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
