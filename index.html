@@ -104,17 +104,17 @@
   .cep-status.erro { color: var(--erro); }
 
   /* Campo de foto */
-  .foto-area { display: flex; align-items: center; gap: 14px; }
+  .foto-area { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .foto-preview {
-    width: 76px; height: 76px; border-radius: 50%; flex: none; overflow: hidden;
-    border: 2px dashed var(--borda); background: var(--input-bg);
+    width: 120px; height: 120px; border-radius: 50%; flex: none; overflow: hidden;
+    border: 2.5px dashed var(--borda); background: var(--input-bg);
     background-size: cover; background-position: center;
     display: grid; place-items: center; color: var(--muted);
   }
   .foto-preview.tem-foto { border-style: solid; border-color: var(--primaria-2); }
-  .foto-preview svg { width: 30px; height: 30px; }
+  .foto-preview svg { width: 44px; height: 44px; }
   .foto-preview.tem-foto svg { display: none; }
-  .foto-acoes { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+  .foto-acoes { display: flex; flex-direction: column; align-items: center; gap: 5px; }
   .btn-foto {
     display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
     padding: 9px 16px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; color: #fff;
